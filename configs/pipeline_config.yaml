@@ -1,0 +1,161 @@
+# Pipeline Configuration
+
+# General settings
+device: "cuda" # "cuda" or "cpu"
+
+# Paths
+paths:
+  data_root: "./data"
+  results_root: "./results"
+  pretrained_models_root: "./pretrained_models"
+
+# Data settings
+data:
+  subject_id: "YOUR_SUBJECT_ID" # Replace with actual subject ID
+  image_size: null # Optional: [height, width] to resize images, null to keep original
+
+# --- Stage 0: Pre-processing ---
+models:
+  segmentation:
+    name: "MODNet" # "MODNet" or "Detectron2"
+    checkpoint_path: "${paths.pretrained_models_root}/modnet/modnet_photographic_portrait_matting.ckpt"
+    # For Detectron2:
+    # config_file: "detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+    # model_weights: "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
+    threshold: 0.9 # For MODNet alpha to binary mask
+  keypoint_detector:
+    name: "HRNet_MMPose" # "OpenPose" or "HRNet_MMPose"
+    # For HRNet/MMPose (example paths, adjust to your MMPose setup)
+    config_file: "${paths.pretrained_models_root}/mmpose/hrnet_w48_coco_wholebody_384x288_dark.py"
+    checkpoint_file: "${paths.pretrained_models_root}/mmpose/hrnet_w48_coco_wholebody_384x288_dark-f5726563_20200918.pth"
+    # For OpenPose:
+    # model_folder: "${paths.pretrained_models_root}/openpose/models/"
+    # keypoint_style: "BODY_25" # or "COCO", "MPII"
+  pixie:
+    config_path: "${paths.pretrained_models_root}/pixie/config.yaml" # Example path
+    checkpoint_path: "${paths.pretrained_models_root}/pixie/pixie_model.pth" # Example path
+  smplx:
+    model_path: "${paths.pretrained_models_root}/smplx" # Directory containing SMPL-X pkl files
+    gender: "neutral" # "neutral", "male", "female"
+    num_betas: 10
+    num_expression_coeffs: 10
+    use_face_contour: True
+    vposer_checkpoint: "${paths.pretrained_models_root}/smplx/vposer_v1_0" # VPoser model for prior
+
+tools:
+  colmap_path: "colmap" # Path to COLMAP executable or command
+
+colmap_options:
+  use_masks: True
+  force_rerun: False
+  matcher: "exhaustive" # "exhaustive", "sequential"
+  quality: "high" # "low", "medium", "high", "extreme" for feature extraction
+  # Add other COLMAP parameters as needed (e.g., shared_intrinsics)
+
+# --- Stage 1: SMPL-X Refinement ---
+smplx_refinement_options:
+  num_iterations: 150
+  lr_smpl: 0.01
+  lr_cam: 0.001
+  optimize_global_orient: True
+  optimize_body_pose: True
+  optimize_betas: True
+  optimize_expression: True
+  optimize_jaw_hand_eye_pose: True # If PIXIE provides good init
+  optimize_camera_extrinsics: True
+  loss_weights:
+    keypoints_2d: 1.0
+    silhouette_iou: 0.5
+    pose_prior_vposer: 0.05 # VPoser prior
+    shape_prior_l2: 0.1    # L2 regularization on betas
+    expression_prior_l2: 0.1 # L2 regularization on expression
+    # collision_penalty: (optional)
+
+# --- Stage 2: Texture Baking ---
+texture_baking_options:
+  visibility_method: "simple_projection" # "simple_projection", "z_buffer"
+  fill_unseen_method: "nearest_visible_vertex" # "nearest_visible_vertex", "symmetry"
+  # UV map settings if not using per-vertex color (more complex)
+
+# --- Stage 3: Gaussian Initialization ---
+gaussian_init_options:
+  num_initial_gaussians: 7000 # Target number of Gaussians
+  sampling_method: "uniform_proportional_area" # From SMPL-X surface
+  initial_opacity: 0.99
+  initial_scale_factor: 0.005 # Relative to average edge length or absolute
+  color_source: "baked_texture" # From Stage 2
+  sh_degree: 0 # Initial SH degree (0 for diffuse color)
+
+# --- Stage 4: Gaussian Rendering (used by Optimizer) ---
+gaussian_rendering_options:
+  # gsplat default settings are usually good. Specific overrides if needed.
+  # e.g., white_background, active_sh_degree during rendering
+  active_sh_degree: 3 # SH degree to render with (can increase during opt)
+
+# --- Stages 5 & 6: Gaussian Optimization & Adaptive Control ---
+gaussian_optimization_options:
+  num_iterations: 10000 # Total iterations for Gaussian optimization
+  lr_means: 0.00016
+  lr_scales: 0.005
+  lr_quats: 0.001
+  lr_colors_dc: 0.0025
+  lr_colors_rest: 0.000125 # For higher order SH coeffs
+  lr_opacities: 0.05
+  optimizer_type: "Adam"
+  # Multi-resolution schedule (example)
+  resolution_schedule: # Iteration: scale_factor (1.0 is full res)
+    0: 0.25    # Start at 1/4 resolution
+    2000: 0.5  # Switch to 1/2 resolution at iter 2000
+    4000: 1.0  # Switch to full resolution at iter 4000
+  log_interval: 100 # Log loss every N iterations
+  save_checkpoint_interval: 1000 # Save intermediate Gaussians
+
+loss_weights: # For Gaussian optimization
+  photometric_l1: 0.8
+  perceptual_lpips: # LPIPS loss (e.g., VGG or AlexNet based)
+    weight: 0.2
+    model_path: "${paths.pretrained_models_root}/lpips/vgg.pth" # Or use lpips library's default
+    net_type: "vgg" # "alex" or "vgg"
+  silhouette_iou_alpha: 1.0 # Compare rendered alpha with masks
+  smplx_distance_L_d2m: 0.1 # Penalty for Gaussians deviating from M0 surface
+  covariance_L_sigma: 0.01 # Regularizer for Gaussian scales/covariance
+
+adaptive_control_options: # Based on Kerbl et al.
+  start_densify_iter: 500
+  end_densify_iter: 7000 # Stop densifying after this iteration
+  densify_interval: 100 # Every N iterations
+  prune_interval: 100   # Every N iterations
+  opacity_threshold_prune: 0.005 # Prune if opacity < threshold
+  densify_grad_threshold: 0.0002 # For positional gradients
+  max_screen_size_split: 20 # Split if screen size (pixels) is large, heuristic
+  clone_threshold_scale: 0.01 # Clone if scale is small but grad is high, heuristic
+  split_factor_scale: 1.6 # How much to scale down after split
+  reset_opacity_interval: 2000 # Reset opacities for non-visible Gaussians
+
+# --- Stages 7 & 8: Gaussian Postprocessing ---
+gaussian_postprocess_options:
+  run_color_fill: True
+  color_fill_method: "nearest_visible_gaussian" # or "smplx_symmetry"
+  run_regularization_sweep: True
+  regularization_iterations: 200
+  lr_regularization: 0.00001 # Smaller LR for refinement
+  loss_weights_regularization:
+    tripod_L_trip: 0.1 # Bone coherence
+    depth_smoothness_L_norm: 0.05
+
+# --- Stage 9: Output Formats ---
+output_options:
+  save_gaussian_ply: True
+  extract_mesh: True
+  mesh_extraction_method: "marching_cubes" # "marching_cubes", "poisson" (requires normals)
+  marching_cubes_resolution: 256 # Voxel grid resolution for marching cubes
+  poisson_depth: 8 # For Poisson surface reconstruction
+
+# --- Stage 10: Quality Checks ---
+quality_check_options:
+  enable_checks: True
+  metrics: ["silhouette_iou", "psnr_novel_view"]
+  silhouette_iou_threshold: 0.85
+  psnr_threshold: 25.0 # dB, on held-out views if available
+  # Action if below threshold: "log_warning", "trigger_reoptimization" (complex to implement)
+  held_out_view_indices: [] # List of indices for PSNR evaluation
