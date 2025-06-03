@@ -2,6 +2,14 @@
 
 This project implements an end-to-end pipeline for reconstructing 3D human avatars from sparse multi-view images, leveraging SMPL-X as a parametric body model and 3D Gaussian Splatting for high-fidelity rendering and geometry refinement.
 
+## Quick-Start
+```bash
+conda create -n 3d_recon_env python=3.9
+conda activate 3d_recon_env
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+pip install -r requirements.txt
+```
+
 ## Features
 
 *   **Stage 0: Preprocessing:** Human segmentation (MODNet/Detectron2), 2D keypoint detection (HRNet/OpenPose), camera calibration (COLMAP).

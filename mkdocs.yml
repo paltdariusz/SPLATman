@@ -1,0 +1,5 @@
+site_name: 3D Recon Docs
+theme:
+  name: material
+nav:
+  - Home: index.md

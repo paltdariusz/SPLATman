@@ -1,0 +1,13 @@
+pyyaml
+numpy
+opencv-python
+pillow
+smplx
+pytorch3d
+torchmetrics
+lpips
+pycolmap
+mmcv-full
+mmpose
+detectron2
+gsplat
