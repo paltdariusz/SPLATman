@@ -40,7 +40,7 @@ jobs:
           conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y
 
           echo "Verifying PyTorch and CUDA setup..."
-          python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'PyTorch CUDA version: {torch.version.cuda if torch.cuda.is_available() else \'N/A\'}')"
+          python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'PyTorch CUDA version: {torch.version.cuda if torch.cuda.is_available() else 0}')"
 
       - name: Install dependencies
         shell: bash -l {0}
