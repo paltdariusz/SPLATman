@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+backend-path = ["."]
+
+[project]
+name = "SPLATman"
+version = "0.1.0"
+description = "3D Body Reconstruction Pipeline (SMPL-X + Gaussian Splatting)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT License"} # Or specify your chosen license
+authors = [
+  {name = "Your Name", email = "you@example.com"}, # Please update with actual author details
+]
+dependencies = [
+    "pyyaml==6.0.2",
+    "numpy==1.26.3",
+    "pillow==11.0.0",
+    "smplx==0.1.28",
+    "pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@fc08621879e57ae17f9663fd1d3775bcea41e3e2",
+    "torchmetrics==1.7.2",
+    "lpips==0.1.4",
+    "pycolmap==3.11.1",
+    "mmcv==2.1.0",
+    "mmpose==1.3.2",
+    "detectron2 @ git+https://github.com/facebookresearch/detectron2.git@65184fc057d4fab080a98564f6b60fae0b94edc4",
+    "gsplat @ git+https://github.com/nerfstudio-project/gsplat.git@0b4dddf04cb687367602c01196913cde6a743d70",
+    # Note: PyTorch, torchvision, torchaudio are expected to be installed via Conda as per plan.md step 3.
+]
+
+[project.scripts]
+"3d-recon" = "main_pipeline:cli_entry"
+
+[tool.setuptools.packages.find]
+where = ["src"] # Tells setuptools to find packages in the 'src' directory
+
+[tool.black]
+# line-length = 88 # Example: uncomment and set if you want to override black's default
+
+[tool.isort]
+# profile = "black" # Example: uncomment if you use black
+# line_length = 88 # Example
+
+[tool.ruff]
+# line-length = 88 # Example
+# select = ["E", "F", "W", "I", "UP", "PL"] # Example: select specific Ruff rules
+# ignore = []
+
+[tool.mypy]
+# python_version = "3.9"
+# warn_return_any = true
+# warn_unused_configs = true
+# ignore_missing_imports = true # Common setting to start with
+# Follow instructions in CONTRIBUTING.md ( Wessex ) to see how to cause this file to be checked by mypy
+# The following are required to allow mypy to type check the repo
+# Follow instructions in CONTRIBUTING.md ( Wessex ) to see how to cause this file to be checked by mypy
+# The following are required to allow mypy to type check the repo
+# mypy_path = "src/" # Example
+# plugins = [ # Example
+#  "numpy.typing.mypy_plugin"
+#]

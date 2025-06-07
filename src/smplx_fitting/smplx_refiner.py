@@ -1,9 +1,10 @@
 """
 Stage 1.B & 1.C: SMPL-X parameter refinement (SMPLify-X style).
 """
+
 import torch
-import torch.optim as optim
-from smplx import SMPLX # From MPI
+from smplx import SMPLX  # From MPI
+
 # from pytorch3d.structures import Meshes
 # from pytorch3d.renderer import (
 #     PerspectiveCameras, MeshRenderer, MeshRasterizer, RasterizationSettings, SoftSilhouetteShader, BlendParams
@@ -13,12 +14,14 @@ from smplx import SMPLX # From MPI
 
 
 class SMPLXRefiner:
-    def __init__(self, smplx_config: dict, refinement_options: dict, device: torch.device):
-        self.smplx_model_path = smplx_config['model_path']
-        self.gender = smplx_config.get('gender', 'neutral')
-        self.num_betas = smplx_config.get('num_betas', 10)
-        self.num_expression_coeffs = smplx_config.get('num_expression_coeffs', 10)
-        self.vposer_checkpoint = smplx_config.get('vposer_checkpoint') # For pose prior
+    def __init__(
+        self, smplx_config: dict, refinement_options: dict, device: torch.device
+    ):
+        self.smplx_model_path = smplx_config["model_path"]
+        self.gender = smplx_config.get("gender", "neutral")
+        self.num_betas = smplx_config.get("num_betas", 10)
+        self.num_expression_coeffs = smplx_config.get("num_expression_coeffs", 10)
+        self.vposer_checkpoint = smplx_config.get("vposer_checkpoint")  # For pose prior
 
         self.options = refinement_options
         self.device = device
@@ -43,8 +46,8 @@ class SMPLXRefiner:
         # vposer, _ = load_vposer(checkpoint_path, vp_model='snapshot')
         # return vposer.to(self.device).eval()
         return None
-    
-    def _setup_silhouette_renderer(self, image_size=(512,512)): # Example image_size
+
+    def _setup_silhouette_renderer(self, image_size=(512, 512)):  # Example image_size
         # blend_params = BlendParams(sigma=1e-4, gamma=1e-4)
         # raster_settings = RasterizationSettings(
         #     image_size=image_size,
@@ -57,9 +60,13 @@ class SMPLXRefiner:
         # )
         return None
 
-    def fit(self, initial_params_list: list[dict], keypoints_2d: list[dict],
-            masks: list[torch.Tensor], cameras # PyTorch3D cameras
-           ) -> tuple: # (final_smplx_mesh, final_smplx_params, final_cameras)
+    def fit(
+        self,
+        initial_params_list: list[dict],
+        keypoints_2d: list[dict],
+        masks: list[torch.Tensor],
+        cameras,  # PyTorch3D cameras
+    ) -> tuple:  # (final_smplx_mesh, final_smplx_params, final_cameras)
         """
         Refines SMPL-X parameters and camera extrinsics.
         - Averages initial_params_list for global shape/expression.
@@ -104,9 +111,9 @@ class SMPLXRefiner:
 
         # 5. Return final refined SMPL-X mesh, parameters, and cameras.
         print("Placeholder: SMPL-X refinement (SMPLify-X style)")
-        final_mesh = None # PyTorch3D Meshes object
-        final_params = {}
-        final_cameras = cameras # Updated cameras if optimized
+        final_mesh = None  # PyTorch3D Meshes object
+        final_params: dict[str, torch.Tensor] = {}
+        final_cameras = cameras  # Updated cameras if optimized
         return final_mesh, final_params, final_cameras
 
     def save_results(self, mesh, params, output_dir: str):

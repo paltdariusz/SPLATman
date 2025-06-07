@@ -1,0 +1,55 @@
+fail_fast: false # Set to true to stop on first failure
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    -   id: check-yaml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: check-added-large-files
+
+-   repo: https://github.com/psf/black
+    rev: 24.8.0 # Uses black version bundled with this tag. Your requirements.txt has 25.1.0.
+    hooks:
+    -   id: black
+        # args: [--line-length=88] # Configure in pyproject.toml's [tool.black] section if needed
+
+-   repo: https://github.com/pycqa/isort
+    rev: 5.13.2 # Your requirements.txt has 6.0.1.
+    hooks:
+    -   id: isort
+        name: isort (python)
+        args: ["--profile", "black"] # Configure in pyproject.toml's [tool.isort] section
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version specified in requirements.txt: ruff==0.11.12
+    # This rev of ruff-pre-commit should use a compatible ruff version.
+    rev: v0.5.5
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        # Configuration for ruff can be in pyproject.toml [tool.ruff]
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.16.0 # Matches mypy==1.16.0 from requirements.txt
+    hooks:
+    -   id: mypy
+        # args: [--ignore-missing-imports] # Add common mypy args here or in pyproject.toml [tool.mypy]
+        additional_dependencies:
+          - types-PyYAML
+          - types-Pillow
+          # Add other stubs like: pytorch-stubs, pandas-stubs, etc. as needed
+          # For smplx, mmcv, mmpose, detectron2, gsplat, pytorch3d, specific stubs might be needed or use ignore_missing_imports
+
+# -   repo: local
+#     hooks:
+#     -   id: pytest
+#         name: pytest
+#         entry: /net/tscratch/people/plgpadar/.conda_darek/envs/splatman/bin/pytest tests/
+#         language: system
+#         types: [python]
+#         pass_filenames: false # Run on all tests, not just changed files
+#         pass_env: [LD_LIBRARY_PATH] # Pass LD_LIBRARY_PATH to the hook
+#         args: [] # Arguments are now part of the entry
+#         # Always run pytest (stages: [commit, push]) or as desired
+#         # stages: [commit]

@@ -1,0 +1,65 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+      - 'feature/**'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    container:
+      image: nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          python-version: 3.9
+          auto-update-conda: true
+          # We will create and activate the environment manually in a subsequent step
+
+      - name: Create Conda environment and Install PyTorch with CUDA
+        shell: bash -l {0} # Ensures conda command is available and activate works
+        run: |
+          conda create -n splatman python=3.9 -y
+
+          # Source conda functions to make 'conda activate' available
+          eval "$(conda shell.bash hook)"
+          conda activate splatman
+
+          echo "Installing PyTorch with CUDA 11.8..."
+          conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y
+
+          echo "Verifying PyTorch and CUDA setup..."
+          python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'PyTorch CUDA version: {torch.version.cuda if torch.cuda.is_available() else \'N/A\'}')"
+
+      - name: Install dependencies
+        shell: bash -l {0}
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda activate splatman
+          pip install -r requirements.txt
+          # pre-commit is listed in requirements.txt, so it will be installed here.
+
+      - name: Run pre-commit checks (style, lint, mypy)
+        shell: bash -l {0}
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda activate splatman
+          pre-commit run --all-files
+
+      - name: Run Pytest
+        shell: bash -l {0}
+        run: |
+          eval "$(conda shell.bash hook)"
+          conda activate splatman
+          pytest tests/

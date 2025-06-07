@@ -1,18 +1,21 @@
 """
 Stage 0.C: Camera Parameter Estimation using COLMAP.
 """
+
 import os
-import subprocess
+from typing import Optional
+
 # from src.utils.colmap_wrappers import read_cameras_binary, read_images_binary # etc.
 # from src.utils.geometry import qvec2rotmat # If needed
 # from pytorch3d.renderer import FoVPerspectiveCameras # or PerspectiveCameras
+
 
 class CameraEstimator:
     def __init__(self, colmap_executable_path: str, options: dict):
         self.colmap_path = colmap_executable_path
         self.options = options
 
-    def run_sfm(self, image_dir: str, output_dir: str, mask_dir: str = None):
+    def run_sfm(self, image_dir: str, output_dir: str, mask_dir: Optional[str] = None):
         """
         Runs COLMAP Structure-from-Motion pipeline.
         """
@@ -23,22 +26,28 @@ class CameraEstimator:
 
         # 1. Feature extraction
         cmd_feature_ext = [
-            self.colmap_path, "feature_extractor",
-            "--database_path", db_path,
-            "--image_path", image_dir,
-            "--ImageReader.single_camera", "1", # Assuming shared intrinsics
+            self.colmap_path,
+            "feature_extractor",
+            "--database_path",
+            db_path,
+            "--image_path",
+            image_dir,
+            "--ImageReader.single_camera",
+            "1",  # Assuming shared intrinsics
             # Add more ImageReader options as per config (e.g., camera_model)
         ]
-        if mask_dir and self.options.get('use_masks', False):
+        if mask_dir and self.options.get("use_masks", False):
             cmd_feature_ext.extend(["--ImageReader.mask_path", mask_dir])
-        
+
         print(f"Running COLMAP feature_extractor: {' '.join(cmd_feature_ext)}")
         # subprocess.run(cmd_feature_ext, check=True)
 
         # 2. Feature matching
         cmd_matcher = [
-            self.colmap_path, self.options.get('matcher', 'exhaustive') + "_matcher",
-            "--database_path", db_path,
+            self.colmap_path,
+            self.options.get("matcher", "exhaustive") + "_matcher",
+            "--database_path",
+            db_path,
             # Add matcher options
         ]
         print(f"Running COLMAP matcher: {' '.join(cmd_matcher)}")
@@ -46,10 +55,14 @@ class CameraEstimator:
 
         # 3. Incremental mapping (sparse reconstruction)
         cmd_mapper = [
-            self.colmap_path, "mapper",
-            "--database_path", db_path,
-            "--image_path", image_dir,
-            "--output_path", sparse_dir,
+            self.colmap_path,
+            "mapper",
+            "--database_path",
+            db_path,
+            "--image_path",
+            image_dir,
+            "--output_path",
+            sparse_dir,
             # Add mapper options
         ]
         print(f"Running COLMAP mapper: {' '.join(cmd_mapper)}")
@@ -98,4 +111,4 @@ class CameraEstimator:
         # )
         # return cameras
         print(f"Placeholder: Loading COLMAP cameras from {sfm_dir}")
-        return None # Replace with actual PyTorch3D cameras list
+        return None  # Replace with actual PyTorch3D cameras list
