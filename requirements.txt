@@ -44,6 +44,7 @@ flake8-comprehensions==3.16.0
 fonttools==4.58.1
 fsspec==2024.6.1
 fvcore
+gdown
 grpcio==1.72.1
 gsplat @ git+https://github.com/nerfstudio-project/gsplat.git@0b4dddf04cb687367602c01196913cde6a743d70
 h11

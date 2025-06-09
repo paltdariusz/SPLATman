@@ -17,17 +17,17 @@ data:
 # --- Stage 0: Pre-processing ---
 models:
   segmentation:
-    name: "MODNet" # "MODNet" or "Detectron2"
-    checkpoint_path: "${paths.pretrained_models_root}/modnet/modnet_photographic_portrait_matting.ckpt"
+    name: "P3M" # "P3M" or "MODNet" or "Detectron2"
+    checkpoint_path: "${paths.pretrained_models_root}/p3m/P3M-ViTAE-S.pth"
     # For Detectron2:
     # config_file: "detectron2/configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
     # model_weights: "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"
-    threshold: 0.9 # For MODNet alpha to binary mask
+    threshold: 0.9
   keypoint_detector:
-    name: "HRNet_MMPose" # "OpenPose" or "HRNet_MMPose"
-    # For HRNet/MMPose (example paths, adjust to your MMPose setup)
-    config_file: "${paths.pretrained_models_root}/mmpose/hrnet_w48_coco_wholebody_384x288_dark.py"
-    checkpoint_file: "${paths.pretrained_models_root}/mmpose/hrnet_w48_coco_wholebody_384x288_dark-f5726563_20200918.pth"
+    name: "RTMW3D" # "OpenPose" or "RTMW3D"
+    # For RTMW-3D/MMPose
+    # config_file: "${paths.pretrained_models_root}/rtmw3d/rtmw3d-x_8xb64-270e_cocktail14-384x288.py"
+    checkpoint_file: "${paths.pretrained_models_root}/rtmw3d/rtmw3d-x_8xb64_cocktail14-384x288-b0a0eab7_20240626.pth"
     # For OpenPose:
     # model_folder: "${paths.pretrained_models_root}/openpose/models/"
     # keypoint_style: "BODY_25" # or "COCO", "MPII"

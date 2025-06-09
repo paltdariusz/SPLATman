@@ -1,0 +1,9 @@
+[submodule "third_party/gsplat"]
+	path = third_party/gsplat
+	url = https://github.com/graphdeco-inria/gaussian-splatting
+[submodule "third_party/colmap"]
+	path = third_party/colmap
+	url = https://github.com/colmap/colmap.git
+[submodule "third_party/P3M_Net"]
+	path = third_party/P3M_Net
+	url = https://github.com/ViTAE-Transformer/P3M-Net.git

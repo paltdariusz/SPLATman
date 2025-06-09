@@ -5,16 +5,16 @@ Follow the order -– later steps assume earlier ones are complete.
 2. **Create a Conda env** `conda create -n splatman python=3.9 && conda activate splatman`.
 3. **Pin core wheels** `conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia`.
 4. **Draft `requirements.txt`** Add at minimum: `pyyaml numpy pillow smplx pytorch3d torchmetrics lpips pycolmap mmcv-full mmpose detectron2 gsplat`.
-5. **Generate `pyproject.toml`** Declare project metadata, `build-system.requires = ["setuptools>=61.0"]`, and expose `3d-recon=main_pipeline:cli_entry` console-script.  (Ref: “It’s Important” section in Python-Guide [link](https://docs.python-guide.org/writing/structure/)).
+5. **Generate `pyproject.toml`** Declare project metadata, `build-system.requires = ["setuptools>=61.0"]`, and expose `3d-recon=main_pipeline:cli_entry` console-script.  (Ref: "It's Important" section in Python-Guide [link](https://docs.python-guide.org/writing/structure/)).
 6. **Add `setup.cfg` (optional)** If you want classic installs during transition.
 7. **Pre-commit** `pre-commit init && pre-commit install` with hooks: `black`, `ruff`, `isort`, `mypy`, `pytest`.
 8. **Create `.github/workflows/ci.yml`** running style, type-check and `pytest` on Python 3.9 with Ubuntu-latest.
 9. **Add `tests/` skeleton** Create `tests/test_imports.py` that simply imports every module under `src/` to catch missing deps.
 10. **Create `docs/` via MkDocs-Material** and enable GitHub Pages deployment from CI.
-11. **Populate `README.md` “Quick-Start”** section with the Conda commands above.
-12. **Add `scripts/download_models.sh`** that downloads: SMPL-X, VPoser, PIXIE, MODNet checkpoint, HRNet weights, LPIPS `vgg.pth`.
-13. **Mark `pretrained_models/` paths** in `configs/pipeline_config.yaml` and confirm `download_models.sh` writes to those exact paths.
-14. **Add `third_party/gsplat`** either as a Git submodule or `pip install git+https://github.com/graphdeco-inria/gaussian-splatting`.
+11. **Populate `README.md` "Quick-Start"** section with the Conda commands above.
+12. **Add `scripts/download_models.sh`** that downloads: SMPL-X, VPoser, PIXIE, P3M checkpoint, RTMW3D weights, LPIPS `vgg.pth`.
+13. ~~**Mark `pretrained_models/` paths** in `configs/pipeline_config.yaml` and confirm `download_models.sh` writes to those exact paths.~~
+14. ~~**Add `third_party/gsplat`** either as a Git submodule or `pip install git+https://github.com/graphdeco-inria/gaussian-splatting`.~~
 15. **Compile / install COLMAP** and ensure `colmap` binary is on `$PATH`; update `colmap_path` in config if needed.
 16. **Write `src/utils/data_utils.py::load_images`** – handles optional resizing & returns NumPy + torch tensors.
 17. **Write `src/utils/torch_utils.py::get_device`** – returns `torch.device("cuda")` if available and matches config.
@@ -35,17 +35,17 @@ Follow the order -– later steps assume earlier ones are complete.
     b. In `PIXIEInitializer._load_model()` load the config & checkpoint.
 27. **Replace placeholder return in `PIXIEInitializer.estimate_single_image`** with real forward pass and structured dict output.
 28. **Add SMPL-X faces tensor in `SMPLXRefiner`** – `self.faces_tensor = torch.from_numpy(self.smplx_model.faces).long()`.
-29. **Finish `_setup_silhouette_renderer()`** using PyTorch3D’s `SoftSilhouetteShader`.
+29. **Finish `_setup_silhouette_renderer()`** using PyTorch3D's `SoftSilhouetteShader`.
 30. **Finish `SMPLXRefiner.fit()`**: 2-stage optimisation – first keypoints only, then add silhouette term.
 31. **Write `tests/test_smplx_refiner.py`** using random joints & identity cameras to ensure loss decreases over 5 iters.
 32. **Implement `TextureBaker`**:
     a. Use ray-mesh intersection to assign per-vertex colour.
     b. Fallback to simple projection if vertex not visible.
 33. **Finish `GaussianCloudInitializer`**: sample `num_initial_gaussians` points uniformly on SMPL-X surface with barycentric coords; copy colour.
-34. **Add `src/gaussian_pipeline/gaussian_renderer.py`** – thin wrapper around `gsplat`’s C++/CUDA rasteriser with batched cameras.
+34. **Add `src/gaussian_pipeline/gaussian_renderer.py`** – thin wrapper around `gsplat`'s C++/CUDA rasteriser with batched cameras.
 35. **Replace render placeholders in `GaussianCloudOptimizer.optimize()`** to call the renderer and compute L1/LPIPS/IoU/SMPL-X distance.
 36. **Hook up LPIPS**: instantiate once outside the loop; normalise images to [–1,1].
-37. **Implement densification & pruning** by importing `densify_gaussians` from gsplat; update the optimiser’s param groups when Gaussians are added.
+37. **Implement densification & pruning** by importing `densify_gaussians` from gsplat; update the optimiser's param groups when Gaussians are added.
 38. **Write `GaussianPostprocessor`** steps – symmetry colour fill (look-up nearest SMPL-X vertex mirrored on Y-axis) and small-LR refinement.
 39. **Implement `GaussianOutputConverter.convert_to_mesh()`** – splat points to a voxel grid (PyTorch3D ops) and apply Marching Cubes (`mcubes.marching_cubes` or `skimage`).
 40. **Write `QualityAssessor`** evaluating:

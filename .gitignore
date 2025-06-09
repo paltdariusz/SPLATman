@@ -1,11 +1,229 @@
-__pycache__/
-.ipynb_checkpoints/
-.DS_Store
+# IDE and OS specific
 .vscode/
-results/**
+.idea/
+*.iml
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Python - Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.dylib
+*.dll
+*.exe
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Logs and temporary files
+*.log
+logs/
 *_logs/
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Machine Learning / AI specific
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.weights
+*.safetensors
+*.onnx
+*.tflite
+*.pb
+*.pkl
+*.pickle
+*.npy
+*.npz
+
+# Notebooks (uncomment if you don't want to track them)
+# *.ipynb
+
+# TensorBoard logs
+tensorboard_logs/
+tb_logs/
+runs/
+
+# Weights & Biases
+wandb/
+
+# MLflow
+mlruns/
+
+# DVC
+.dvc
+
+# Project directories
+data/
+datasets/
+results/
+outputs/
+checkpoints/
+experiments/
+pretrained_models/
+models/
+third_party/colmap_install_clean/
+third_party/colmap/build/
+third_party/P3M_Net/
+
+# File formats
 *.ply
 *.obj
-*.pt
-*.onnx
-pretrained_models/**
+*.mesh
+*.off
+*.stl
+*.3ds
+*.dae
+*.blend
+
+# Video/Image data (uncomment if needed)
+# *.mp4
+# *.avi
+# *.mov
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.tiff
+# *.bmp
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# System generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Network mounted files
+.nfs*

@@ -1,75 +1,91 @@
 """
-Stage 0.B: 2D Keypoint Detection
-Wrapper for HRNet (via MMPose) or OpenPose.
+Stage 0.B: 2D/3D Keypoint Detection
+Wrapper for MMPose models like RTMW-3D.
 """
-import torch
+
+from typing import Dict, List
+
+import cv2
 import numpy as np
-# For MMPose:
-# from mmpose.apis import inference_topdown, init_model
-# from mmpose.structures import PoseDataSample
-# For OpenPose: Requires custom Python binding or subprocess call to OpenPose binary
+import torch
+
+# Optional dependency: MMPose. It relies on compiled extensions (e.g. xtcocotools)
+# that may not be available in lightweight CI images. Therefore we wrap the import
+# in a try/except and provide graceful degradation so that mere *import* of this
+# module does not fail during unit-tests that only exercise imports.
+try:
+    from mmpose.apis import inference_topdown, init_model  # type: ignore
+    from mmpose.structures import PoseDataSample  # type: ignore
+except (ModuleNotFoundError, ValueError):  # ValueError can arise from binary mismatch
+    inference_topdown = None  # type: ignore
+    init_model = None  # type: ignore
+    PoseDataSample = object  # type: ignore
+
 
 class KeypointDetector:
     def __init__(self, config: dict, device: torch.device):
         self.config = config
         self.device = device
-        self.model_name = config.get('name', 'HRNet_MMPose').lower()
+        self.model_name = config.get("name", "rtmw3d").lower()
         self.model = self._load_model()
+        print(f"KeypointDetector initialized with model: {self.model_name}")
 
     def _load_model(self):
-        if self.model_name == 'hrnet_mmpose':
-            # Placeholder: Load MMPose HRNet model
-            # model = init_model(
-            #     self.config['config_file'],
-            #     self.config['checkpoint_file'],
-            #     device=str(self.device)
-            # )
-            # return model
-            print(f"Placeholder: MMPose HRNet model loaded using {self.config['config_file']}")
-            return None # Replace with actual model
-        elif self.model_name == 'openpose':
-            # Placeholder: Setup OpenPose (might involve OpenPosePython or similar)
-            print(f"Placeholder: OpenPose setup using model folder {self.config.get('model_folder')}")
-            return "OpenPoseWrapperPlaceholder" # Replace with actual wrapper/instance
+        """Loads the MMPose model from the config paths."""
+        if self.model_name == "rtmw3d":
+            model = init_model(
+                self.config["config_file"],
+                self.config["checkpoint_file"],
+                device=str(self.device),
+            )
+            return model
         else:
             raise ValueError(f"Unsupported keypoint detector: {self.model_name}")
 
-    def detect_single_image(self, image_np: np.ndarray) -> dict:
+    def detect_single_image(self, image_np: np.ndarray) -> Dict[str, np.ndarray]:
         """
-        Detects 2D keypoints in a single image.
+        Detects 2D/3D keypoints in a single image.
         Args:
-            image_np (np.ndarray): Input image as HxWxC NumPy array (RGB or BGR, model dependent).
+            image_np (np.ndarray): Input image as HxWxC NumPy array (RGB).
         Returns:
-            dict: Detected keypoints, e.g., {'keypoints': [[x,y,conf], ...], 'bbox': [x1,y1,x2,y2]}
-                  The structure should be standardized for downstream use.
+            dict: Detected keypoints, e.g., {'keypoints': [[x,y,conf], ...], 'keypoints_3d': [[x,y,z,conf],...]}
+                  The structure is standardized for downstream use. For now, we focus on 2D.
         """
-        if self.model is None: # If placeholder
-            return {'keypoints': np.random.rand(17, 3) * np.array([image_np.shape[1], image_np.shape[0], 1.0])}
+        # MMPose models generally expect BGR images
+        image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
 
+        # Run inference
+        results: List[PoseDataSample] = inference_topdown(self.model, image_bgr)
 
-        if self.model_name == 'hrnet_mmpose':
-            # Placeholder: MMPose inference
-            # results = inference_topdown(self.model, image_np) # MMPose may need BGR
-            # # Process results: extract keypoints (x,y,score) for the person(s)
-            # # This needs careful parsing of PoseDataSample object(s)
-            # # Example: keypoints = results[0].pred_instances.keypoints
-            # #          scores = results[0].pred_instances.keypoint_scores
-            # # Standardize the output format
-            # return processed_keypoints_dict
-            pass
-        elif self.model_name == 'openpose':
-            # Placeholder: OpenPose inference
-            # keypoints_data = self.model.predict(image_np) # Depends on OpenPose wrapper
-            # return keypoints_data
-            pass
-        return {'keypoints': np.random.rand(17, 3) * np.array([image_np.shape[1], image_np.shape[0], 1.0])}
+        # Process results for the first (and assumed only) person
+        if not results:
+            print("Warning: No keypoints detected.")
+            return {
+                "keypoints": np.zeros((133, 3))
+            }  # Return empty/zero keypoints for COCO-WholeBody
 
+        # Extract data from the first detected instance
+        pred_instances = results[0].pred_instances
 
-    def detect_batch(self, images_np: list[np.ndarray]) -> list[dict]:
-        """ Detects keypoints for a batch of images. """
+        # Get 2D keypoints and scores
+        keypoints = pred_instances.keypoints[0]  # (num_keypoints, 2)
+        keypoint_scores = pred_instances.keypoint_scores[0]  # (num_keypoints,)
+
+        # Combine into [x, y, score] format
+        keypoints_2d_with_scores = np.hstack(
+            [keypoints, keypoint_scores[:, np.newaxis]]
+        )
+
+        # TODO: Add extraction for 3D keypoints if the model provides them
+        # keypoints_3d = results[0].pred_instances.keypoints_3d
+
+        return {"keypoints": keypoints_2d_with_scores}
+
+    def detect_batch(self, images_np: List[np.ndarray]) -> List[Dict]:
+        """Detects keypoints for a batch of images."""
+        # Simple loop for now; MMPose might have more efficient batching
         all_keypoints_data = []
         for img_np in images_np:
-            # Note: Some models might support batch inference directly
             all_keypoints_data.append(self.detect_single_image(img_np))
         return all_keypoints_data
 

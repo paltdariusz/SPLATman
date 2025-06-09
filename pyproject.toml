@@ -1,7 +1,6 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-backend-path = ["."]
 
 [project]
 name = "SPLATman"
@@ -46,6 +45,9 @@ where = ["src"] # Tells setuptools to find packages in the 'src' directory
 # line-length = 88 # Example
 # select = ["E", "F", "W", "I", "UP", "PL"] # Example: select specific Ruff rules
 # ignore = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
 
 [tool.mypy]
 # python_version = "3.9"
