@@ -31,11 +31,13 @@ def test_smplx_fitting_imports():
 
 
 def test_utils_imports():
-    # from utils import data_utils # Add as created
-    # from utils import torch_utils # Add as created
+    from utils import data_utils  # Add as created
+    from utils import torch_utils  # Add as created
+
     # from utils import colmap_wrappers # Add as created
     # from utils import geometry # Add as created
-    assert True  # Placeholder until utils modules are added
+    assert data_utils is not None
+    assert torch_utils is not None
 
 
 def test_evaluation_imports():
