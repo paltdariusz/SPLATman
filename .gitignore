@@ -188,7 +188,6 @@ pretrained_models/
 models/
 third_party/colmap_install_clean/
 third_party/colmap/build/
-third_party/P3M_Net/
 
 # File formats
 *.ply
